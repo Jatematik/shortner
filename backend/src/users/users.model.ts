@@ -1,5 +1,6 @@
 import { Document, Model, Schema, model } from 'mongoose';
 import jwt from 'jsonwebtoken';
+import { compare, genSalt, hash } from 'bcryptjs';
 import NotAuthorizedError from '../errors/not-authorized-error';
 
 interface IUser {
@@ -64,6 +65,17 @@ const usersSchema = new Schema(
   }
 );
 
+usersSchema.pre('save', async function (next) {
+  try {
+    if (this.isModified('password')) {
+      const salt = await genSalt(8);
+      this.password = await hash(this.password, salt);
+    }
+  } catch (error) {
+    next();
+  }
+});
+
 usersSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
@@ -86,7 +98,11 @@ usersSchema.statics.findUserByCredentials = async function (
       () => new NotAuthorizedError('User with provided credentials not found')
     );
 
-  //password
+  const isCorrectPassword = await compare(password, user.password);
+
+  if (!isCorrectPassword) {
+    throw new NotAuthorizedError('Invalid credentials');
+  }
 
   return user;
 };
