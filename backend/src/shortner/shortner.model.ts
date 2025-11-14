@@ -3,7 +3,7 @@ import { Schema, model } from 'mongoose';
 interface Shortner {
   originalLink: string;
   shortLink: string;
-  owner: string;
+  owner: Schema.Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
 }

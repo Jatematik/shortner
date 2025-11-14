@@ -11,12 +11,14 @@ export const createShortUrl = async (
   next: NextFunction
 ) => {
   const url = req.body.url;
+  const ownerId = res.locals.user.id;
 
   try {
     const shortLink = await getShortUrl(url);
     const newShortUrl = await Shortner.create({
       originalLink: url,
       shortLink,
+      owner: ownerId,
     });
 
     res.status(201).send({
@@ -31,6 +33,28 @@ export const createShortUrl = async (
       return next(new BadRequestError(errors[0].message));
     }
 
+    next(error);
+  }
+};
+
+export const getAllShortLinksByUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const ownerId = res.locals.user.id;
+
+  try {
+    const shortLinks = (await Shortner.find({ owner: ownerId })) || [];
+
+    res.send(
+      shortLinks.map((link) => ({
+        id: link._id,
+        originalLink: link.originalLink,
+        shortLink: link.shortLink,
+      }))
+    );
+  } catch (error) {
     next(error);
   }
 };
