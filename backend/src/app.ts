@@ -3,6 +3,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import helmet from 'helmet';
 
 import { errorHandler } from './middlewares/error-handler';
 import shortnerRouter from './shortner/shortner.router';
@@ -16,6 +17,12 @@ const { PORT, MONGO_URL, FRONTEND_URL } = process.env;
 const app = express();
 
 app.disable('x-powered-by');
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    xPoweredBy: false,
+  })
+);
 
 app.use(
   cors({
